@@ -35,7 +35,7 @@ namespace FireAndForget.TestClient
             var json = JsonConvert.SerializeObject(busmessage);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var message = client.PostAsync("http://localhost:2900/api/servicebus/", httpContent);
+            var message = client.PostAsync("http://localhost:2900/api/v1/enqueue/", httpContent);
             message.Result.EnsureSuccessStatusCode();
         }
 
