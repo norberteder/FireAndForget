@@ -1,18 +1,42 @@
-﻿using System.Web.Http;
+﻿using System;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
 using FireAndForget.Core;
 
 namespace FireAndForget.Controllers
 {
     public class RetryController : ApiController
     {
-        public void Retry()
+        public HttpResponseMessage Retry()
         {
-            BusManager.Instance.RetryErroneousTasks();            
+            return Retry(null);
         }
 
-        public void Retry(string queue)
+        public HttpResponseMessage Retry(string queue)
         {
-            BusManager.Instance.RetryErroneousTasks(queue);
+            try
+            {
+                if (string.IsNullOrEmpty(queue))
+                {
+                    lock (this)
+                    {
+                        BusManager.Instance.RetryErroneousTasks();
+                    }
+                }
+                else
+                {
+                    lock (this)
+                    {
+                        BusManager.Instance.RetryErroneousTasks(queue);
+                    }
+                }
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
     }
 }
