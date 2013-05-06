@@ -45,6 +45,10 @@ namespace FireAndForget.Core.Persistence
             command.CommandText = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BusTask') BEGIN CREATE TABLE BusTask ([Id] [bigint] IDENTITY(1,1) NOT NULL,[MessageType] [nvarchar](max) NOT NULL,[Data] [nvarchar](max) NOT NULL,[Queue] [nvarchar](50) NOT NULL,[Received] [datetime] NOT NULL,[Finished] [datetime] NULL,[Error] [nvarchar](max) NULL,[State] [int] NOT NULL,CONSTRAINT [PK_BusTask] PRIMARY KEY CLUSTERED ([Id] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]) ON [PRIMARY] END";
             command.ExecuteNonQuery();
 
+            command = Connection.CreateCommand();
+            command.CommandText = "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='bt_state' AND object_id = OBJECT_ID('BusTask')) BEGIN CREATE NONCLUSTERED INDEX [bt_state] ON BusTask ([State] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY] END";
+            command.ExecuteNonQuery();
+
             Close();
         }
 
