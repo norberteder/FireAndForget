@@ -55,6 +55,24 @@ namespace FireAndForget.Core
             workingQueue[task.Queue].Enqueue(task);
         }
 
+        public void RetryErroneousTasks()
+        {
+            foreach (string queue in errorQueue.Keys)
+            {
+                RetryErroneousTasks(queue);
+            }
+        }
+
+        public void RetryErroneousTasks(string queue)
+        {
+            BusTask task = GetErrorTask(queue);
+            while (task != null)
+            {
+                Schedule(task);
+                task = GetErrorTask(queue);
+            }
+        }
+
         private string RetrieveMessageType(string data)
         {
             var message = JObject.Parse(data);
@@ -136,10 +154,23 @@ namespace FireAndForget.Core
         public BusTask Get(string queue)
         {
             if (!workingQueue.ContainsKey(queue))
-                throw new InvalidOperationException("queue does not exist");
+                throw new InvalidOperationException("Queue '" + queue + "' does not exist");
 
             BusTask task = null;
             if (workingQueue[queue].TryDequeue(out task))
+            {
+                return task;
+            }
+            return null;
+        }
+
+        private BusTask GetErrorTask(string queue)
+        {
+            if (!errorQueue.ContainsKey(queue))
+                throw new InvalidOperationException("Queue '" + queue + "' does not exist");
+
+            BusTask task = null;
+            if (errorQueue[queue].TryDequeue(out task))
             {
                 return task;
             }

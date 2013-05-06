@@ -63,6 +63,7 @@
     <Compile Include="Configuration\ServiceBusConfigurationSection.cs" />
     <Compile Include="Configuration\WorkerConfigurationElement.cs" />
     <Compile Include="Configuration\WorkerConfigurationElementCollection.cs" />
+    <Compile Include="Controllers\RetryController.cs" />
     <Compile Include="Exceptions\ServiceBusConfigurationException.cs" />
     <Compile Include="Exceptions\ServiceBusInitializationException.cs" />
     <Compile Include="Host.cs" />

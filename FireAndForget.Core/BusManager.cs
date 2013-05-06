@@ -72,5 +72,15 @@ namespace FireAndForget.Core
         {
             bus.Schedule(message.Data);
         }
+
+        public void RetryErroneousTasks()
+        {
+            bus.RetryErroneousTasks();
+        }
+
+        public void RetryErroneousTasks(string queue)
+        {
+            bus.RetryErroneousTasks(queue);
+        }
     }
 }
