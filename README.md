@@ -68,7 +68,7 @@ These are the possible requests for controlling FireAndForget:
 
 *Add a message*
 
-	POST http://localhost:2900/api/v1/queue HTTP/1.1
+	POST http://localhost:2900/api/v1/enqueue HTTP/1.1
 	Host: localhost:2900
 	content-type: application/json
 	content-length: 72
