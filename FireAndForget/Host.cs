@@ -23,8 +23,7 @@ namespace FireAndForget
             var config = new HttpSelfHostConfiguration(Uri);
             config.HostNameComparisonMode = HostNameComparisonMode.Exact;
 
-            config.Routes.MapHttpRoute("PostMessage", "api/v1/enqueue/", new { controller = "servicebus" });
-            config.Routes.MapHttpRoute("RequeueErrors", "api/v1/retry/{queue}", new { controller = "retry", queue = RouteParameter.Optional });
+            RouteRegistry.Register(config.Routes);
 
             using (HttpSelfHostServer server = new HttpSelfHostServer(config))
             {
