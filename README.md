@@ -49,7 +49,7 @@ There is not a lot to configure. All configurations are stored in the `app.confi
 	  </ServiceBusConfiguration>
 	</configuration>
 
-## Messages
+## Message
 
 This is how a message looks like:
 
@@ -61,6 +61,38 @@ This is how a message looks like:
 	}
 
 Very important is `MessageType`. This has to match with an executor that handles this kind of messages. `Data` includes the serialized data for the executor. 
+
+## API
+
+These are the possible requests for controlling FireAndForget:
+
+*Add a message*
+
+	POST http://localhost:2900/api/v1/queue HTTP/1.1
+	Host: localhost:2900
+	content-type: application/json
+	content-length: 72
+
+	{
+	  "Data": {
+	    "MessageType": "Default",
+	    "Data": "Muh"
+	  }
+	}
+
+*Requeue all erroneous tasks*
+
+	POST http://localhost:2900/api/v1/retry HTTP/1.1
+	Host: localhost:2900
+	content-type: application/json
+	content-length: 0
+
+*Requeue all erroneous tasks of a specific queue*
+
+	POST http://localhost:2900/api/v1/retry/default HTTP/1.1
+	Host: localhost:2900
+	content-type: application/json
+	content-length: 0
 
 There is a test client in the solution to show how it works. It's really simple!
 
