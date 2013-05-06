@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireAndForget", "FireAndForget\FireAndForget.csproj", "{8A2C8999-28B6-4390-8C29-E02A413E49E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireAndForget.TestClient", "FireAndForget.TestClient\FireAndForget.TestClient.csproj", "{892D2F69-9227-47BC-8421-C978354C65F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireAndForget.Core", "FireAndForget.Core\FireAndForget.Core.csproj", "{21504C7D-AA9D-4F79-8607-CF192FCD2386}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8A2C8999-28B6-4390-8C29-E02A413E49E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A2C8999-28B6-4390-8C29-E02A413E49E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A2C8999-28B6-4390-8C29-E02A413E49E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A2C8999-28B6-4390-8C29-E02A413E49E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{892D2F69-9227-47BC-8421-C978354C65F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{892D2F69-9227-47BC-8421-C978354C65F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{892D2F69-9227-47BC-8421-C978354C65F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{892D2F69-9227-47BC-8421-C978354C65F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21504C7D-AA9D-4F79-8607-CF192FCD2386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21504C7D-AA9D-4F79-8607-CF192FCD2386}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21504C7D-AA9D-4F79-8607-CF192FCD2386}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21504C7D-AA9D-4F79-8607-CF192FCD2386}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
