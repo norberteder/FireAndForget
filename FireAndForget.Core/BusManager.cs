@@ -73,11 +73,18 @@ namespace FireAndForget.Core
             bus.Schedule(message.Data);
         }
 
+        /// <summary>
+        /// Reenqueues all erroneous tasks
+        /// </summary>
         public void RetryErroneousTasks()
         {
             bus.RetryErroneousTasks();
         }
 
+        /// <summary>
+        /// Reenqueues all erroneous tasks for a specific queue
+        /// </summary>
+        /// <param name="queue">The name of the queue.</param>
         public void RetryErroneousTasks(string queue)
         {
             bus.RetryErroneousTasks(queue);

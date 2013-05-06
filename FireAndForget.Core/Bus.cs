@@ -45,16 +45,27 @@ namespace FireAndForget.Core
             workingQueue[queue].Enqueue(task);
         }
 
+        /// <summary>
+        /// Schedules the given object. 
+        /// </summary>
+        /// <param name="data">An <see cref="object"/> that can be deserialized by the message bus</param>
         public void Schedule(object data)
         {
             Schedule(data.ToString());
         }
 
+        /// <summary>
+        /// Schedules an instance of <see cref="BusTask"/>
+        /// </summary>
+        /// <param name="task">The task.</param>
         public void Schedule(BusTask task)
         {
             workingQueue[task.Queue].Enqueue(task);
         }
 
+        /// <summary>
+        /// Reenqueues all erroneous tasks
+        /// </summary>
         public void RetryErroneousTasks()
         {
             foreach (string queue in errorQueue.Keys)
@@ -63,6 +74,10 @@ namespace FireAndForget.Core
             }
         }
 
+        /// <summary>
+        /// Reenqueues all erroneous tasks for a specific queue
+        /// </summary>
+        /// <param name="queue">The name of the queue.</param>
         public void RetryErroneousTasks(string queue)
         {
             BusTask task = GetErrorTask(queue);

@@ -7,17 +7,29 @@ using System.Threading.Tasks;
 
 namespace FireAndForget.Core.Persistence
 {
+    /// <summary>
+    /// Provides access to the data layer
+    /// </summary>
     public class DatabaseManager : IRepository
     {
         private static object lockObject = new object();
         private static DatabaseManager instance;        
         private Type RepositoryType { get; set; }
 
+        /// <summary>
+        /// Prevents a default instance of the <see cref="DatabaseManager"/> class from being created.
+        /// </summary>
         private DatabaseManager()
         {
             Configure();
         }
 
+        /// <summary>
+        /// Gets an instance of <see cref="DatabaseManager"/>
+        /// </summary>
+        /// <value>
+        /// A fully configured instance of <see cref="DatabaseManager"/>
+        /// </value>
         public static DatabaseManager Instance
         {
             get

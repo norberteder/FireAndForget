@@ -32,7 +32,7 @@ namespace FireAndForget.Core
             timer.Elapsed += timer_Elapsed;
         }
 
-        void timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (taskInProgress)
                 return;

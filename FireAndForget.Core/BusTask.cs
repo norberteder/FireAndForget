@@ -84,6 +84,9 @@ namespace FireAndForget.Core
             State = BusTaskState.Finished;
         }
 
+        /// <summary>
+        /// Marks this task as started
+        /// </summary>
         public void Start()
         {
             State = BusTaskState.Started;
