@@ -18,36 +18,38 @@ There is not a lot to configure. All configurations are stored in the `app.confi
 * `Server`: This is the URI the server listening for messages
 * `Workers`: Configure named workers here. For each worker an own queue is created
 * `Executors`: Executors are mapped to message types (see section *Messages* below) and a specific worker. Please note: there is no registration for message events, it is a direct mapping, nothing more.
+	
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <configSections>
+    <section name="ServiceBusConfiguration" 
+             type="FireAndForget.Configuration.ServiceBusConfigurationSection, FireAndForget"/>
+  </configSections>
+  
+  <appSettings>
+    <add key="repository" 
+         value="FireAndForget.Core.Persistence.SqlServerRepository, FireAndForget.Core"/>
+  </appSettings>
+  <connectionStrings>
+    <add name="sqlserver" connectionString="Server=localhost;Database=FireAndForget;Trusted_Connection=True;" providerName="System.Data.SqlClient"/>
+  </connectionStrings>
 
-	<?xml version="1.0" encoding="utf-8" ?>
-	<configuration>
-	  <configSections>
-	    <section name="ServiceBusConfiguration" 
-	             type="FireAndForget.Configuration.ServiceBusConfigurationSection, FireAndForget"/>
-	  </configSections>
-	  
-	  <appSettings>
-	    <add key="repository" 
-	         value="FireAndForget.Core.Persistence.SqlServerRepository, FireAndForget.Core"/>
-	  </appSettings>
-	  <connectionStrings>
-	    <add name="sqlserver" connectionString="Server=localhost;Database=FireAndForget;Trusted_Connection=True;" providerName="System.Data.SqlClient"/>
-	  </connectionStrings>
-
-	  <ServiceBusConfiguration>
-	    <Server uri="http://localhost:2900"/>
-	    <Workers>
-	      <Worker name="default"/>
-	      <Worker name="test"/>
-	    </Workers>
-	    <Executors>
-	      <Executor worker="default" 
-	                type="FireAndForget.TestClient.TaskExecutors.DefaultTaskExecutor, FireAndForget.TestClient"/>
-	      <Executor worker="test" 
-	                type="FireAndForget.TestClient.TaskExecutors.TestTaskExecutor, FireAndForget.TestClient"/>
-	    </Executors>
-	  </ServiceBusConfiguration>
-	</configuration>
+  <ServiceBusConfiguration>
+    <Server uri="http://localhost:2900"/>
+    <Workers>
+      <Worker name="default"/>
+      <Worker name="test"/>
+    </Workers>
+    <Executors>
+      <Executor worker="default" 
+                type="FireAndForget.TestClient.TaskExecutors.DefaultTaskExecutor, FireAndForget.TestClient"/>
+      <Executor worker="test" 
+                type="FireAndForget.TestClient.TaskExecutors.TestTaskExecutor, FireAndForget.TestClient"/>
+    </Executors>
+  </ServiceBusConfiguration>
+</configuration>
+```
 
 ## Message
 
