@@ -10,7 +10,7 @@ namespace FireAndForget.Core.Persistence
     /// <summary>
     /// Provides access to the data layer
     /// </summary>
-    public class DatabaseManager : IRepository
+    internal class DatabaseManager : IRepository
     {
         private static object lockObject = new object();
         private static DatabaseManager instance;        
@@ -73,6 +73,12 @@ namespace FireAndForget.Core.Persistence
         {
             var repository = Activator.CreateInstance(RepositoryType) as IRepository;
             return repository.GetAllOpenTasksForQueue(queueName);
+        }
+
+        public IEnumerable<BusTask> GetAllOpenAndDelayedTasks()
+        {
+            var repository = Activator.CreateInstance(RepositoryType) as IRepository;
+            return repository.GetAllOpenAndDelayedTasks();
         }
     }
 }

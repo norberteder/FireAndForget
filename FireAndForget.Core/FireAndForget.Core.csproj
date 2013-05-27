@@ -48,6 +48,7 @@
     <Compile Include="BusTask.cs" />
     <Compile Include="BusTaskState.cs" />
     <Compile Include="BusWorker.cs" />
+    <Compile Include="DelayedBusWorker.cs" />
     <Compile Include="Models\ServiceBusMessage.cs" />
     <Compile Include="NoConfiguredBusException.cs" />
     <Compile Include="Persistence\DatabaseManager.cs" />

@@ -7,7 +7,7 @@ using FireAndForget.Core.Persistence;
 
 namespace FireAndForget.Core
 {
-    public class Bus
+    internal class Bus
     {
         private ConcurrentDictionary<string, ConcurrentQueue<BusTask>> workingQueue = new ConcurrentDictionary<string, ConcurrentQueue<BusTask>>();
         private ConcurrentDictionary<string, ConcurrentQueue<BusTask>> errorQueue = new ConcurrentDictionary<string, ConcurrentQueue<BusTask>>();
@@ -25,6 +25,15 @@ namespace FireAndForget.Core
         }
 
         /// <summary>
+        /// Schedules the given object. 
+        /// </summary>
+        /// <param name="data">An <see cref="object"/> that can be deserialized by the message bus</param>
+        public void Schedule(object data)
+        {
+            Schedule(data.ToString());
+        }
+
+        /// <summary>
         /// Schedules a new job
         /// </summary>
         /// <param name="data">The data to processed by the task</param>
@@ -39,19 +48,19 @@ namespace FireAndForget.Core
                 throw new InvalidOperationException("queue does not exist");
 
             var task = new BusTask(queue, messageType, data);
-
+            
+            bool delayedTask = IsDelayedMessage(task.Data);
+            if (delayedTask)
+            {
+                task.Delayed(GetExecuteDateFromMessage(task.Data));
+            }
+            
             DatabaseManager.Instance.Add(task);
 
-            workingQueue[queue].Enqueue(task);
-        }
-
-        /// <summary>
-        /// Schedules the given object. 
-        /// </summary>
-        /// <param name="data">An <see cref="object"/> that can be deserialized by the message bus</param>
-        public void Schedule(object data)
-        {
-            Schedule(data.ToString());
+            if (!delayedTask)
+            {
+                workingQueue[queue].Enqueue(task);
+            }
         }
 
         /// <summary>
@@ -60,7 +69,10 @@ namespace FireAndForget.Core
         /// <param name="task">The task.</param>
         public void Schedule(BusTask task)
         {
-            workingQueue[task.Queue].Enqueue(task);
+            if (!IsDelayedMessage(task.Data))
+            {
+                workingQueue[task.Queue].Enqueue(task);
+            }
         }
 
         /// <summary>
@@ -92,6 +104,23 @@ namespace FireAndForget.Core
         {
             var message = JObject.Parse(data);
             return message.Value<string>("MessageType");            
+        }
+
+        private bool IsDelayedMessage(string data)
+        {
+            var message = JObject.Parse(data);
+            JToken sendAt;
+            DateTime executeAt;
+            if (message.TryGetValue("SendAt", out sendAt) && sendAt.Value<DateTime?>() != null) {
+                return true;
+            }
+            return false;
+        }
+
+        private DateTime GetExecuteDateFromMessage(string data)
+        {
+            var message = JObject.Parse(data);
+            return message.GetValue("SendAt").Value<DateTime>();
         }
 
         /// <summary>

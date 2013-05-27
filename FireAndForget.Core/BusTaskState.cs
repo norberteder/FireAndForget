@@ -19,6 +19,10 @@ namespace FireAndForget.Core
         /// </summary>
         Finished = 2,
         /// <summary>
+        /// The task has been marked as delayed
+        /// </summary>
+        Delayed = 3,
+        /// <summary>
         /// The task is in an error state
         /// </summary>
         Error = 9

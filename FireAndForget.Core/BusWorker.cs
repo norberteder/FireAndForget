@@ -5,7 +5,7 @@ using FireAndForget.Core.TaskExecutor;
 
 namespace FireAndForget.Core
 {
-    public class BusWorker
+    internal class BusWorker
     {
         private Bus Bus { get; set; }        
         private Timer timer = new Timer(200);
@@ -17,14 +17,14 @@ namespace FireAndForget.Core
         /// <value>
         /// The name.
         /// </value>
-        public string Name { get; private set; }
+        internal string Name { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BusWorker" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="bus">The bus.</param>
-        public BusWorker(string name, Bus bus)
+        internal BusWorker(string name, Bus bus)
         {
             Bus = bus;
             Name = name;
@@ -77,7 +77,7 @@ namespace FireAndForget.Core
         /// <summary>
         /// Starts the worker.
         /// </summary>
-        public void Start()
+        internal void Start()
         {
             timer.Start();
         }
