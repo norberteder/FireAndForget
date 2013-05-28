@@ -32,5 +32,10 @@ namespace FireAndForget.Core.Persistence
         /// <param name="queueName">Name of the queue.</param>
         /// <returns>Returns an <see cref="IEnumerable"/> of <see cref="BusTask"/> representing open tasks for the given queue</returns>
         IEnumerable<BusTask> GetAllOpenTasksForQueue(string queueName);
+        /// <summary>
+        /// Gets all delayed tasks.
+        /// </summary>
+        /// <returns>Returns an <see cref="IEnumerable"/> of <see cref="BusTask"/> representing all open and delayed tasks</returns>
+        IEnumerable<BusTask> GetAllOpenAndDelayedTasks();
     }
 }

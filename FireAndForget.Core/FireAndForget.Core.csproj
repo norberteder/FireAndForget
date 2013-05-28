@@ -46,8 +46,11 @@
     <Compile Include="Bus.cs" />
     <Compile Include="BusManager.cs" />
     <Compile Include="BusTask.cs" />
+    <Compile Include="BusTaskDescriptor.cs" />
     <Compile Include="BusTaskState.cs" />
     <Compile Include="BusWorker.cs" />
+    <Compile Include="DelayedBusWorker.cs" />
+    <Compile Include="KeyValuePair.cs" />
     <Compile Include="Models\ServiceBusMessage.cs" />
     <Compile Include="NoConfiguredBusException.cs" />
     <Compile Include="Persistence\DatabaseManager.cs" />

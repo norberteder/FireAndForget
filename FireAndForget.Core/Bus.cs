@@ -7,12 +7,12 @@ using FireAndForget.Core.Persistence;
 
 namespace FireAndForget.Core
 {
-    public class Bus
+    internal class Bus
     {
         private ConcurrentDictionary<string, ConcurrentQueue<BusTask>> workingQueue = new ConcurrentDictionary<string, ConcurrentQueue<BusTask>>();
         private ConcurrentDictionary<string, ConcurrentQueue<BusTask>> errorQueue = new ConcurrentDictionary<string, ConcurrentQueue<BusTask>>();
         private ConcurrentDictionary<string, string> messageMapping = new ConcurrentDictionary<string, string>();
-        private ConcurrentDictionary<string, Dictionary<string, Type>> executors = new ConcurrentDictionary<string, Dictionary<string, Type>>();
+        private ConcurrentDictionary<string, List<KeyValuePair<string, Type>>> executors = new ConcurrentDictionary<string, List<KeyValuePair<string, Type>>>();
 
         /// <summary>
         /// Registers a queue
@@ -25,27 +25,6 @@ namespace FireAndForget.Core
         }
 
         /// <summary>
-        /// Schedules a new job
-        /// </summary>
-        /// <param name="data">The data to processed by the task</param>
-        /// <exception cref="System.InvalidOperationException">queue does not exist</exception>
-        public void Schedule(string data)
-        {
-            var messageType = RetrieveMessageType(data);
-
-            var queue = ResolveQueueForExecutor(messageType);
-
-            if (!workingQueue.ContainsKey(queue))
-                throw new InvalidOperationException("queue does not exist");
-
-            var task = new BusTask(queue, messageType, data);
-
-            DatabaseManager.Instance.Add(task);
-
-            workingQueue[queue].Enqueue(task);
-        }
-
-        /// <summary>
         /// Schedules the given object. 
         /// </summary>
         /// <param name="data">An <see cref="object"/> that can be deserialized by the message bus</param>
@@ -55,10 +34,49 @@ namespace FireAndForget.Core
         }
 
         /// <summary>
+        /// Schedules a new job
+        /// </summary>
+        /// <param name="data">The data to processed by the task</param>
+        /// <exception cref="System.InvalidOperationException">queue does not exist</exception>
+        public void Schedule(string data)
+        {
+            var taskDescriptor = new BusTaskDescriptor(data);
+            var messageType = taskDescriptor.MessageType;
+
+            var queue = ResolveQueueForExecutor(messageType);
+
+            if (!workingQueue.ContainsKey(queue))
+                throw new InvalidOperationException("queue does not exist");
+
+            var task = new BusTask(queue, messageType, data);
+
+            if (taskDescriptor.IsDelayedTask)
+            {
+                task.Delayed(taskDescriptor.ExecuteAt.Value);
+            }
+            
+            DatabaseManager.Instance.Add(task);
+
+            if (!taskDescriptor.IsDelayedTask)
+            {
+                workingQueue[queue].Enqueue(task);
+            }
+        }
+
+        /// <summary>
         /// Schedules an instance of <see cref="BusTask"/>
         /// </summary>
         /// <param name="task">The task.</param>
         public void Schedule(BusTask task)
+        {
+            var taskDescriptor = new BusTaskDescriptor(task);
+            if (!taskDescriptor.IsDelayedTask)
+            {
+                workingQueue[task.Queue].Enqueue(task);
+            }
+        }
+
+        public void ScheduleImmediately(BusTask task)
         {
             workingQueue[task.Queue].Enqueue(task);
         }
@@ -88,12 +106,6 @@ namespace FireAndForget.Core
             }
         }
 
-        private string RetrieveMessageType(string data)
-        {
-            var message = JObject.Parse(data);
-            return message.Value<string>("MessageType");            
-        }
-
         /// <summary>
         /// Registers an executor
         /// </summary>
@@ -108,13 +120,15 @@ namespace FireAndForget.Core
                 if (!executors.ContainsKey(worker))
                 {
                     // TODO: error handling
-                    Dictionary<string, Type> mapping = new Dictionary<string, Type>();
-                    mapping.Add(executor.MessageType, executorType);
+                    List<KeyValuePair<string, Type>> mapping = new List<KeyValuePair<string, Type>>();
+                    mapping.Add(new KeyValuePair<string,Type>(executor.MessageType, executorType));
                     executors.TryAdd(worker, mapping);
                 }
-                else if (!executors[worker].ContainsKey(executor.MessageType))
+                else //if (!executors[worker].ContainsKey(executor.MessageType))
                 {
-                    executors[worker].Add(executor.MessageType, executorType);
+                    var existingIndex = executors[worker].FindIndex(item => item.Key == executor.MessageType);
+                    if (existingIndex < 0)
+                        executors[worker].Add(new KeyValuePair<string, Type>(executor.MessageType, executorType));
                 }
             }
         }
@@ -123,14 +137,35 @@ namespace FireAndForget.Core
         /// Resolves an executor by a given name
         /// </summary>
         /// <param name="messageType">The name of the executor to be resolved</param>
-        /// <returns>the type of a found executor or <see cref="null"/></returns>
-        public Type ResolveExecutor(string messageType)
+        /// <returns>an instance of a found executor or <see cref="null"/></returns>
+        public ITaskExecutor ResolveExecutor(string messageType)
         {
             var keys = executors.Keys;
             foreach (var key in keys)
             {
-                if (executors[key].ContainsKey(messageType))
-                    return executors[key][messageType];
+                var index = executors[key].FindIndex(item => item.Key == messageType);
+                if (index >= 0)
+                {
+                    Type type = executors[key].Find(item => item.Key == messageType).Value;
+                    return (ITaskExecutor)Activator.CreateInstance(type);
+                }
+            }
+            return null;
+        }
+
+        public ITaskExecutor ResolveBulkExecutor(string messageType)
+        {
+            var keys = executors.Keys;
+            foreach (var key in keys)
+            {
+                var index = executors[key].FindIndex(item => item.Key == messageType);
+                if (index >= 0)
+                {
+                    Type type = executors[key].Find(item => item.Key == messageType).Value;
+                    var executor = (ITaskExecutor)Activator.CreateInstance(type);
+                    if (executor.SupportsBulkTasks)
+                        return executor;
+                }
             }
             return null;
         }
@@ -145,7 +180,7 @@ namespace FireAndForget.Core
             var keys = executors.Keys;
             foreach (var key in keys)
             {
-                if (executors[key].ContainsKey(messageType))
+                if (executors[key].FindIndex(item => item.Key == messageType) >= 0)
                     return key;
             }
             return null;

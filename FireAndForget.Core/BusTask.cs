@@ -41,6 +41,13 @@ namespace FireAndForget.Core
         /// The finished.
         /// </value>
         public DateTime Finished { get; set; }
+        /// <summary>
+        /// Gets or sets the date/time when to execute the task
+        /// </summary>
+        /// <value>
+        /// The execute at.
+        /// </value>
+        public DateTime? ExecuteAt { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BusTask" /> class.
@@ -82,6 +89,14 @@ namespace FireAndForget.Core
         {
             Finished = DateTime.Now;
             State = BusTaskState.Finished;
+        }
+
+        /// <summary>
+        /// Marks this task as delayed
+        /// </summary>
+        public void Delayed(DateTime executeAt)
+        {
+            ExecuteAt = executeAt;
         }
 
         /// <summary>

@@ -9,6 +9,8 @@
 * Configurable executors for messages
 * Support for Microsoft SQL Server (another storage systems can be implemented easily)
 * Very low dependencies
+* Delayed execution
+* Bulk handling
 
 ## Configuration
 
@@ -53,16 +55,29 @@ There is not a lot to configure. All configurations are stored in the `app.confi
 
 ## Message
 
-This is how a message looks like:
+This is how a simple message looks like:
 
 	{
-	   "Data":{
-	      "MessageType":"DefaultTask",
-	      "Data":"This is some data for the default handler0"
-	   }
+	    "Data": {
+	        "MessageType": "TestTask",
+	        "Data": "Data for the test handler0"
+	    }
 	}
 
-Very important is `MessageType`. This has to match with an executor that handles this kind of messages. `Data` includes the serialized data for the executor. 
+And this is how a message for delayed execution as a bulk operation looks like:
+
+	{
+	    "Data": {
+	        "MessageType": "TestTask",
+	        "ExecuteAt": null,
+	        "Data": "Data for the test handler0",
+	        "IsBulk": false
+	    }
+	}
+
+Very important is `MessageType`. This has to match with an executor that handles this kind of messages. `ExecuteAt` is a date value indicating when to execute the task (delayed) `Data` includes the serialized data for the executor. Finally, `IsBulk` defines that this task should be combined with the same task (this is only for delayed tasks).
+
+`ExecuteAt` and `IsBulk` are *optional*.
 
 ## API
 
@@ -78,8 +93,26 @@ These are the possible requests for controlling FireAndForget:
 	{
 	  "Data": {
 	    "MessageType": "Default",
-	    "Data": "Muh"
+	    "ExecuteAt": null,
+	    "Data": "Muh",
+	    "IsBulk": false
 	  }
+	}
+
+*Add a delayed message which is bulk enabled*
+
+	POST http://localhost:2900/api/v1/enqueue HTTP/1.1
+	Host: localhost:2900
+	content-type: application/json
+	content-length: 197
+
+	{
+	    "Data": {
+	        "MessageType": "TestTask",
+	        "ExecuteAt": "2013-05-28T12:18:15.4027698+02:00",
+	        "Data": "THIS TASK IS DELAYED!!!!",
+	        "IsBulk": true
+	    }
 	}
 
 *Requeue all erroneous tasks*
