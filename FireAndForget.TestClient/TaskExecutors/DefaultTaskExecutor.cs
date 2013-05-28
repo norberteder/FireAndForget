@@ -10,10 +10,15 @@ namespace FireAndForget.TestClient.TaskExecutors
             get { return "DefaultTask"; }
         }
 
+        public bool SupportsBulkTasks
+        {
+            get { return false; }
+        }
+
         public void Process(string data)
         {
             int fib = Fibonacci(13);
-            System.Console.WriteLine("Executed {0} in Thread {1} - {2}", this.GetType().Name, Thread.CurrentThread.ManagedThreadId, fib); 
+            //System.Console.WriteLine("Executed {0} in Thread {1} - {2}", this.GetType().Name, Thread.CurrentThread.ManagedThreadId, fib); 
         }
 
         private int Fibonacci(int number)

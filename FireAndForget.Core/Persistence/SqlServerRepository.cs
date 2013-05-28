@@ -41,18 +41,21 @@ namespace FireAndForget.Core.Persistence
         {
             Open();
 
+            List<string> commands = new List<string>()
+            {
+                "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BusTask') BEGIN CREATE TABLE BusTask ([Id] [bigint] IDENTITY(1,1) NOT NULL,[MessageType] [nvarchar](max) NOT NULL,[Data] [nvarchar](max) NOT NULL,[Queue] [nvarchar](50) NOT NULL,[Received] [datetime] NOT NULL,[Finished] [datetime] NULL,[Error] [nvarchar](max) NULL,[State] [int] NOT NULL,CONSTRAINT [PK_BusTask] PRIMARY KEY CLUSTERED ([Id] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]) ON [PRIMARY] END",
+                "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='bt_state' AND object_id = OBJECT_ID('BusTask')) BEGIN CREATE NONCLUSTERED INDEX [bt_state] ON BusTask ([State] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY] END",
+                "IF NOT EXISTS (SELECT * FROM syscolumns WHERE name = 'ExecuteAt' and id = OBJECT_ID('BusTask')) BEGIN ALTER TABLE [BusTask] ADD [ExecuteAt] datetime NULL END",
+                "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='bt_executeat' AND object_id = OBJECT_ID('BusTask')) BEGIN CREATE NONCLUSTERED INDEX [bt_executeat] ON BusTask ([ExecuteAt] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY] END"
+            };
+
             var command = Connection.CreateCommand();
-            command.CommandText = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BusTask') BEGIN CREATE TABLE BusTask ([Id] [bigint] IDENTITY(1,1) NOT NULL,[MessageType] [nvarchar](max) NOT NULL,[Data] [nvarchar](max) NOT NULL,[Queue] [nvarchar](50) NOT NULL,[Received] [datetime] NOT NULL,[Finished] [datetime] NULL,[Error] [nvarchar](max) NULL,[State] [int] NOT NULL,CONSTRAINT [PK_BusTask] PRIMARY KEY CLUSTERED ([Id] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]) ON [PRIMARY] END";
-            command.ExecuteNonQuery();
 
-            command = Connection.CreateCommand();
-            command.CommandText = "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='bt_state' AND object_id = OBJECT_ID('BusTask')) BEGIN CREATE NONCLUSTERED INDEX [bt_state] ON BusTask ([State] ASC)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY] END";
-            command.ExecuteNonQuery();
-
-
-            command = Connection.CreateCommand();
-            command.CommandText = "IF NOT EXISTS (SELECT * FROM syscolumns WHERE name = 'ExecuteAt' and id = OBJECT_ID('BusTask')) BEGIN ALTER TABLE [BusTask] ADD [ExecuteAt] datetime NULL END";
-            command.ExecuteNonQuery();
+            foreach (var sql in commands)
+            {
+                command.CommandText = sql;
+                command.ExecuteNonQuery();
+            }
 
             Close();
         }
@@ -164,7 +167,7 @@ namespace FireAndForget.Core.Persistence
             Open();
 
             var command = Connection.CreateCommand();
-            command.CommandText = "SELECT MessageType, Data, Queue, Received, Finished, Error, State, Id, ExecuteAt FROM BusTask WHERE State = 3 order by Received ASC";
+            command.CommandText = "SELECT MessageType, Data, Queue, Received, Finished, Error, State, Id, ExecuteAt FROM BusTask WHERE ExecuteAt is not null AND State <> 2 order by Received ASC";
 
             using (var reader = command.ExecuteReader())
             {

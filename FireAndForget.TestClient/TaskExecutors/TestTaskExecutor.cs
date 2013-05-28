@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using FireAndForget.Core.TaskExecutor;
+using Newtonsoft.Json.Linq;
 
 namespace FireAndForget.TestClient.TaskExecutors
 {
@@ -10,22 +12,33 @@ namespace FireAndForget.TestClient.TaskExecutors
             get { return "TestTask"; }
         }
 
-        public void Process(string data)
+        public bool SupportsBulkTasks
         {
-            Fibonacci(20);
-            System.Console.WriteLine("Executed {0} in Thread {1} - {2}", this.GetType().Name, Thread.CurrentThread.ManagedThreadId, data); 
+            get { return true; }
         }
 
-        private int Fibonacci(int number)
+        public void Process(string data)
         {
-            if (number == 0)
-                return 0;
-            else if (number == 1)
-                return 1;
+            JObject parsedData = JObject.Parse(data);
+            JToken dataToken = parsedData["Data"];
+
+            if (dataToken is JArray)
+            {
+                JArray items = (JArray)dataToken;
+                foreach (var item in items)
+                {
+                    PrintMessageData(item, true);
+                }
+            }
             else
             {
-                return Fibonacci(number - 2) + Fibonacci(number - 1);
+                PrintMessageData(parsedData.Value<string>("Data"), false);
             }
+        }
+
+        private void PrintMessageData(object value, bool fromArray)
+        {
+            Console.WriteLine(value + " " + fromArray);
         }
     }
 }

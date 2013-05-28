@@ -15,6 +15,14 @@ namespace FireAndForget.Core.TaskExecutor
         string MessageType { get; }
 
         /// <summary>
+        /// Gets a value indicating whether this task executor supports the execution of bulk tasks or not.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [supports bulk tasks]; otherwise, <c>false</c>.
+        /// </value>
+        bool SupportsBulkTasks { get; }
+
+        /// <summary>
         /// Executes the executor with the given data
         /// </summary>
         /// <param name="data">The data that's necessary for this executor</param>

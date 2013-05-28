@@ -97,7 +97,6 @@ namespace FireAndForget.Core
         public void Delayed(DateTime executeAt)
         {
             ExecuteAt = executeAt;
-            State = BusTaskState.Delayed;
         }
 
         /// <summary>

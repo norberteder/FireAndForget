@@ -13,7 +13,11 @@ namespace FireAndForget.Core
         private Bus bus = new Bus();
         private List<BusWorker> workers = new List<BusWorker>();
 
-        private BusManager() { }
+        private BusManager() 
+        {
+            var delayedWorker = new DelayedBusWorker(bus);
+            Task.Factory.StartNew(() => delayedWorker.Start());
+        }
 
         /// <summary>
         /// Gets the instance of the BusManager

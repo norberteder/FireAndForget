@@ -47,8 +47,7 @@ namespace FireAndForget.Core
             {
                 try
                 {
-                    var executorType = this.Bus.ResolveExecutor(task.MessageType);
-                    ITaskExecutor executor = Activator.CreateInstance(executorType) as ITaskExecutor;
+                    ITaskExecutor executor = this.Bus.ResolveExecutor(task.MessageType);
 
                     task.Start();
                     DatabaseManager.Instance.Update(task);

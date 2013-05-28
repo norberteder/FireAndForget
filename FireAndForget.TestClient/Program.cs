@@ -12,22 +12,25 @@ namespace FireAndForget.TestClient
     public interface ITask
     {
         string MessageType { get; }
-        DateTime? SendAt { get; set; }
+        DateTime? ExecuteAt { get; set; }
         object Data { get; set; }
+        bool IsBulk { get; set; }
     }
 
     public class DefaultTask : ITask
     {
         public string MessageType { get { return this.GetType().Name; } }
-        public DateTime? SendAt { get; set; }
+        public DateTime? ExecuteAt { get; set; }
         public object Data { get; set; }
+        public bool IsBulk { get; set; }
     }
 
     public class TestTask : ITask
     {
         public string MessageType { get { return this.GetType().Name; } }
-        public DateTime? SendAt { get; set; }
+        public DateTime? ExecuteAt { get; set; }
         public object Data { get; set; }
+        public bool IsBulk { get; set; }
     }
 
     class Program
@@ -56,22 +59,22 @@ namespace FireAndForget.TestClient
 
         static void FillDefaultQueue()
         {
-            //for (int i = 0; i < 500; i++)
-            //{
-            //    DefaultTask task = new DefaultTask();
-            //    task.Data = "This is some data for the default handler" + i;
-            //    SubmitMessage(new ServiceBusMessage() { Data = task });
-            //}
+            for (int i = 0; i < 500; i++)
+            {
+                DefaultTask task = new DefaultTask();
+                task.Data = "This is some data for the default handler" + i;
+                SubmitMessage(new ServiceBusMessage() { Data = task });
+            }
         }
 
         static void FillTestQueue()
         {
-            //for (int i = 0; i < 500; i++)
-            //{
-            //    TestTask task = new TestTask();
-            //    task.Data = "Data for the test handler" + i;
-            //    SubmitMessage(new ServiceBusMessage() { Data = task });
-            //}
+            for (int i = 0; i < 500; i++)
+            {
+                TestTask task = new TestTask();
+                task.Data = "Data for the test handler" + i;
+                SubmitMessage(new ServiceBusMessage() { Data = task });
+            }
         }
 
         static void SendDelayedTasks()
@@ -80,7 +83,8 @@ namespace FireAndForget.TestClient
             {
                 TestTask task = new TestTask();
                 task.Data = "THIS TASK IS DELAYED!!!!";
-                task.SendAt = DateTime.Now.AddMinutes(1);
+                task.ExecuteAt = DateTime.Now.AddMinutes(1);
+                task.IsBulk = true;
                 SubmitMessage(new ServiceBusMessage() { Data = task });
             }
         }
