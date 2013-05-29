@@ -9,7 +9,7 @@ namespace FireAndForget.Core
     {
         private Bus Bus { get; set; }        
         private Timer timer = new Timer(200);
-        private bool taskInProgress = false;
+        private int inProgress = 0;
 
         /// <summary>
         /// Gets the name of this worker
@@ -29,48 +29,45 @@ namespace FireAndForget.Core
             Bus = bus;
             Name = name;
 
-            timer.Elapsed += timer_Elapsed;
+            timer.Elapsed += OnTimerElapsed;
         }
 
-        private void timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if (taskInProgress)
-                return;
-
-            timer.Stop();
-
-            taskInProgress = true;
-
-            BusTask task = Bus.Get(Name);
-
-            while (task != null)
+            if (System.Threading.Interlocked.CompareExchange(ref inProgress, 1, 0) == 0)
             {
-                try
+                timer.Stop();
+
+                BusTask task = Bus.Get(Name);
+
+                while (task != null)
                 {
-                    ITaskExecutor executor = this.Bus.ResolveExecutor(task.MessageType);
+                    try
+                    {
+                        ITaskExecutor executor = this.Bus.ResolveExecutor(task.MessageType);
 
-                    task.Start();
-                    DatabaseManager.Instance.Update(task);
+                        task.Start();
+                        DatabaseManager.Instance.Update(task);
 
-                    executor.Process(task.Data);
+                        executor.Process(task.Data);
 
-                    task.Finish();
-                    DatabaseManager.Instance.Update(task);
+                        task.Finish();
+                        DatabaseManager.Instance.Update(task);
+                    }
+                    catch (Exception ex)
+                    {
+                        task.SetError(ex);
+                        DatabaseManager.Instance.Update(task);
+
+                        Bus.AddFailed(task);
+                    }
+
+                    task = Bus.Get(Name);
                 }
-                catch (Exception ex)
-                {
-                    task.SetError(ex);
-                    DatabaseManager.Instance.Update(task);
 
-                    Bus.AddFailed(task);
-                }
-
-                task = Bus.Get(Name);
+                System.Threading.Interlocked.Exchange(ref inProgress, 0);
+                timer.Start();
             }
-
-            taskInProgress = false;
-
-            timer.Start();
         }
 
         /// <summary>

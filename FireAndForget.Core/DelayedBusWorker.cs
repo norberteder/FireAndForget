@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using FireAndForget.Core.Persistence;
-using FireAndForget.Core.TaskExecutor;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,19 +12,19 @@ namespace FireAndForget.Core
     {
         private Bus bus;
         private Timer timer = new Timer(30000);
-        private bool inProgress = false;
+        private int inProgress = 0;
 
         public DelayedBusWorker(Bus bus)
         {
             this.bus = bus;
-            timer.Elapsed += timer_Elapsed;
+            timer.Elapsed += OnTimerElapsed;
         }
 
-        private void timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if (!inProgress)
+            if (System.Threading.Interlocked.CompareExchange(ref inProgress, 1, 0) == 0) 
             {
-                inProgress = true;
+                timer.Stop();
 
                 var delayedTasks = DatabaseManager.Instance.GetAllOpenAndDelayedTasks().ToList();
                 var tasksToHandle = GetTasksToExecute(delayedTasks);
@@ -76,7 +73,8 @@ namespace FireAndForget.Core
                     }
                 }
 
-                inProgress = false;
+                System.Threading.Interlocked.Exchange(ref inProgress, 0);
+                timer.Start();
             }
         }
 
