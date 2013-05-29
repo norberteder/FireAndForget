@@ -24,57 +24,67 @@ namespace FireAndForget.Core
         {
             if (System.Threading.Interlocked.CompareExchange(ref inProgress, 1, 0) == 0) 
             {
-                timer.Stop();
 
-                var delayedTasks = DatabaseManager.Instance.GetAllOpenAndDelayedTasks().ToList();
-                var tasksToHandle = GetTasksToExecute(delayedTasks);
-                Dictionary<string, List<BusTask>> bulkTasks = new Dictionary<string, List<BusTask>>();
-
-                foreach (var task in tasksToHandle)
+                try
                 {
-                    var taskDescriptor = new BusTaskDescriptor(task);
-                    if (taskDescriptor.IsBulkTask)
-                    {
-                        if (!bulkTasks.ContainsKey(taskDescriptor.MessageType))
-                            bulkTasks.Add(taskDescriptor.MessageType, new List<BusTask>());
+                    timer.Stop();
 
-                        bulkTasks[taskDescriptor.MessageType].Add(task);
-                        continue;
+                    var delayedTasks = DatabaseManager.Instance.GetAllOpenAndDelayedTasks().ToList();
+                    var tasksToHandle = GetTasksToExecute(delayedTasks);
+                    Dictionary<string, List<BusTask>> bulkTasks = new Dictionary<string, List<BusTask>>();
+
+                    foreach (var task in tasksToHandle)
+                    {
+                        var taskDescriptor = new BusTaskDescriptor(task);
+                        if (taskDescriptor.IsBulkTask)
+                        {
+                            if (!bulkTasks.ContainsKey(taskDescriptor.MessageType))
+                                bulkTasks.Add(taskDescriptor.MessageType, new List<BusTask>());
+
+                            bulkTasks[taskDescriptor.MessageType].Add(task);
+                            continue;
+                        }
+
+                        this.bus.ScheduleImmediately(task);
                     }
 
-                    this.bus.ScheduleImmediately(task);
-                }
-
-                if (bulkTasks.Count > 0)
-                {
-                    foreach (var messageType in bulkTasks.Keys)
+                    if (bulkTasks.Count > 0)
                     {
-                        var executor = bus.ResolveBulkExecutor(messageType);
+                        foreach (var messageType in bulkTasks.Keys)
+                        {
+                            var executor = bus.ResolveBulkExecutor(messageType);
 
-                        var tasksForMessageType = bulkTasks[messageType];
-                        var data = CreateMessageFromTasks(messageType, tasksForMessageType);
-                        try
-                        {
-                            executor.Process(data.ToString());
-                            foreach (var task in tasksForMessageType)
+                            var tasksForMessageType = bulkTasks[messageType];
+                            var data = CreateMessageFromTasks(messageType, tasksForMessageType);
+                            try
                             {
-                                task.Finish();
-                                DatabaseManager.Instance.Update(task);
+                                executor.Process(data.ToString());
+                                foreach (var task in tasksForMessageType)
+                                {
+                                    task.Finish();
+                                    DatabaseManager.Instance.Update(task);
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            foreach (var task in tasksForMessageType)
+                            catch (Exception ex)
                             {
-                                task.SetError(ex);
-                                DatabaseManager.Instance.Update(task);
+                                foreach (var task in tasksForMessageType)
+                                {
+                                    task.SetError(ex);
+                                    DatabaseManager.Instance.Update(task);
+                                }
                             }
                         }
                     }
                 }
-
-                System.Threading.Interlocked.Exchange(ref inProgress, 0);
-                timer.Start();
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(ex.Message);
+                }
+                finally
+                {
+                    System.Threading.Interlocked.Exchange(ref inProgress, 0);
+                    timer.Start();
+                }
             }
         }
 
@@ -110,5 +120,4 @@ namespace FireAndForget.Core
             public List<string> Data { get { return data; } }
         }
     }
-
 }
