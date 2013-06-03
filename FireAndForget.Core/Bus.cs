@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
-using FireAndForget.Core.TaskExecutor;
 using FireAndForget.Core.Persistence;
+using FireAndForget.Core.TaskExecutor;
 
 namespace FireAndForget.Core
 {
